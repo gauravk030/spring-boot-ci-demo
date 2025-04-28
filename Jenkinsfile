@@ -62,15 +62,17 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh """
-                        docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION} .
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
-                    """
-                    env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
-                }
-            }
+		        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+		            script {
+		                sh """
+		                    docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION} .
+		                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+		                    docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
+		                """
+		                env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
+		            }
+		        }
+		    }
         }
 
         stage('Deploy to Kubernetes') {
