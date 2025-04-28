@@ -1,2 +1,2 @@
 # spring-boot-ci-demo
-CICD
+CICD pipeline
