@@ -19,13 +19,13 @@ pipeline {
         stage('Set Build Name') {
             steps {
                 script {
-		            // Extract branch name
+		            // Get branch name
 		            def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'master'
 		
-		            // Extract Maven version cleanly
-		            def version = sh(script: "mvn help:evaluate -Dexpression=project.version -DforceStdout -q | grep -v '\\['", returnStdout: true).trim()
+		            // Extract version directly from pom.xml (no mvn execution needed)
+		            def version = sh(script: "grep '<version>' pom.xml | head -1 | sed 's/.*<version>\\(.*\\)<\\/version>.*/\\1/'", returnStdout: true).trim()
 		
-		            // Set Jenkins build display name
+		            // Set display name
 		            currentBuild.displayName = "${branchName} - ${version} #${BUILD_NUMBER}"
 		
 		            echo "Build Display Name set to: ${currentBuild.displayName}"
