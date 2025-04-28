@@ -19,13 +19,19 @@ pipeline {
         stage('Set Build Name') {
             steps {
                 script {
-                    // Extract branch name safely
+		            // Extract branch name safely
 		            def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'unknown-branch'
 		
-		            // Extract Maven version safely
-		            def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout || echo unknown-version", returnStdout: true).trim()
+		            // Extract Maven version cleanly (no color codes, no junk)
+		            def version = sh(
+		                script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -v '\\['",
+		                returnStdout: true
+		            ).trim()
 		
-		            // If somehow version is still empty, fallback
+		            // Remove any non-printable characters (like ANSI escapes)
+		            version = version.replaceAll('[^\\x20-\\x7E]', '')
+		
+		            // Fallback if still empty
 		            if (!version) {
 		                version = 'unknown-version'
 		            }
