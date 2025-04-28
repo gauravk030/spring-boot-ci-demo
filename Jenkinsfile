@@ -2,30 +2,50 @@ pipeline {
     agent any
 
     tools {
-        sonarQubeScanner 'SonarQubeScanner'  // Name of the SonarQube Scanner configured above
+        maven 'Maven 3.6.3'  // Update with the correct Maven version name
+        sonarQubeScanner 'SonarQubeScanner'  // Make sure this matches the name of your SonarQube scanner setup
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/gauravk030/spring-boot-ci-demo.git'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh './mvnw clean package'
+                git 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // GitHub repository URL
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    withSonarQubeEnv('SonarQube') {  // Ensure 'SonarQube' is your SonarQube server name
+                    withSonarQubeEnv('SonarQube') {  // Ensure 'SonarQube' matches your SonarQube server configuration
                         sh 'mvn clean verify sonar:sonar'
                     }
                 }
             }
         }
+
+        stage('Build') {
+            steps {
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                script {
+                    sh 'kubectl apply -f kubernetes/deployment.yaml'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build, analysis, and deployment were successful!'
+        }
+        failure {
+            echo 'There was an issue with the build or deployment.'
+        }
     }
 }
-
