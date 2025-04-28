@@ -4,7 +4,7 @@ pipeline {
     tools {
         maven 'Maven 3.6.3'  // Ensure this matches your Maven installation
         // Use SonarRunnerInstallation instead of sonarScanner
-        sonar 'SonarQube Scanner'  // Make sure this matches the name of your SonarQube scanner setup in Global Tool Configuration
+        sonarQubeScanner 'SonarQube Scanner'  // Make sure this matches the name of your SonarQube scanner setup in Global Tool Configuration
     }
 
     stages {
