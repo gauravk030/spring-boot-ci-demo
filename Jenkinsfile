@@ -10,18 +10,18 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
+                githubNotify context: 'CI/CD', state: 'PENDING', description: 'Checking out code...', credentialsId: 'git-token'
                 git branch: 'master', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'
-                setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
+                githubNotify context: 'CI/CD', state: 'SUCCESS', description: 'Checkout completed', credentialsId: 'git-token'
             }
         }
 
         stage('Build') {
             steps {
                 script {
-                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'PENDING', description: 'Building project...', credentialsId: 'git-token'
                     sh 'mvn clean install'
-                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'SUCCESS', description: 'Build successful', credentialsId: 'git-token'
                 }
             }
         }
@@ -29,19 +29,19 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'PENDING', description: 'Running SonarQube analysis...', credentialsId: 'git-token'
                     sh "${env.SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=spring-boot-ci-demo -Dsonar.sources=src -Dsonar.java.binaries=target"
-                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'SUCCESS', description: 'SonarQube analysis completed', credentialsId: 'git-token'
                 }
             }
         }
-        
+
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
-                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'PENDING', description: 'Waiting for Quality Gate...', credentialsId: 'git-token'
                     waitForQualityGate abortPipeline: true
-                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
+                    githubNotify context: 'CI/CD', state: 'SUCCESS', description: 'Quality Gate passed', credentialsId: 'git-token'
                 }
             }
         }
