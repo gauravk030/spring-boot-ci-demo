@@ -30,14 +30,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to Minikube') {
-            steps {
-                script {
-                    sh 'kubectl apply -f kubernetes/deployment.yaml'
-                }
-            }
-        }
     }
 
     post {
