@@ -87,6 +87,5 @@ pipeline {
         failure {
             echo '❌ Pipeline failed! Check above logs!'
         }
- 
     }
 }
