@@ -1,25 +1,22 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven 3.8.7'  // Ensure this matches your Maven installation
-        // Use SonarRunnerInstallation instead of sonarScanner
-       
-    }
     environment {
-        SONARQUBE_SCANNER_HOME = tool 'SonarScanner'   // SonarScanner installation name
+        SONAR_TOKEN = credentials('sonar-token')  // Replace with your Jenkins credentials ID
     }
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // Use main if that's the default branch
+                // Checkout the code from your Git repository
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
+                // Build your project
                 script {
-                    // Build the project using Maven
                     sh 'mvn clean install'
                 }
             }
@@ -27,20 +24,29 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                 sh '''
-      				/var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner
-    			 '''
-                
+                // Set the environment for SonarQube analysis and run SonarScanner
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        /var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner \
+                        -Dsonar.projectKey=spring-boot-ci-demo \
+                        -Dsonar.sources=src \
+                        -Dsonar.java.binaries=target \
+                        -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
             }
         }
-    }
 
-    post {
-        success {
-            echo 'Build and analysis were successful!'
-        }
-        failure {
-            echo 'Build or analysis failed!'
+        stage('Quality Gate') {
+            steps {
+                // Wait for SonarQube analysis to complete and check the quality gate status
+                script {
+                    def qualityGate = waitForQualityGate()
+                    if (qualityGate.status != 'OK') {
+                        error "Quality gate failed: ${qualityGate.status}"
+                    }
+                }
+            }
         }
     }
 }
