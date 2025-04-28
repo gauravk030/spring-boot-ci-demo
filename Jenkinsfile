@@ -49,7 +49,6 @@ pipeline {
             }
         }
     }
-
     post {
         success {
             echo 'Build and analysis were successful!'
