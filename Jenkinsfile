@@ -3,12 +3,12 @@ pipeline {
 
     tools {
         maven 'Maven 3.8.7'  // Ensure this matches your Maven installation
-        // Use SonarRunnerInstallation instead of sonarScanner
-       
     }
+    
     environment {
         SONARQUBE_SCANNER_HOME = tool 'SonarScanner'   // SonarScanner installation name
     }
+
     stages {
         stage('Checkout') {
             steps {
@@ -16,10 +16,26 @@ pipeline {
             }
         }
 
+        stage('Set Build Name') {
+            steps {
+                script {
+                    // Extract branch name
+                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'unknown-branch'
+
+                    // Extract Maven version from pom.xml
+                    def version = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+
+                    // Set Jenkins build display name
+                    currentBuild.displayName = "${branchName} - ${version} #${BUILD_NUMBER}"
+
+                    echo "Build Display Name set to: ${currentBuild.displayName}"
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
-                    // Build the project using Maven
                     sh 'mvn clean install'
                 }
             }
