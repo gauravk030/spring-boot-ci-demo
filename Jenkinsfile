@@ -25,15 +25,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 // Set the environment for SonarQube analysis and run SonarScanner
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        /var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner \
-                        -Dsonar.projectKey=spring-boot-ci-demo \
-                        -Dsonar.sources=src \
-                        -Dsonar.java.binaries=target \
-                        -Dsonar.login=$SONAR_TOKEN
-                    '''
-                }
+                sh '''
+			        /var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner
+			    '''
             }
         }
 
