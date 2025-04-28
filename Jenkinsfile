@@ -67,12 +67,17 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh """
-                        docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION} .
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
-                    """
-                    env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
+                    script {
+                        // Set the full image name inside the script block
+                        def fullImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
+                        sh """
+                            docker build -t ${fullImageName} .
+                            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                            docker push ${fullImageName}
+                        """
+                        // Store the image name in an environment variable
+                        env.FULL_IMAGE_NAME = fullImageName
+                    }
                 }
             }
         }
