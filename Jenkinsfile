@@ -9,7 +9,7 @@ pipeline {
         SONARQUBE_SCANNER_HOME = tool 'SonarScanner'
         DOCKER_REGISTRY = 'gauravkhrnr'    // Replace with your actual DockerHub username
         IMAGE_NAME = 'spring-boot-ci-demo'
-        KUBE_NAMESPACE = 'default'                     // Your Kubernetes namespace
+        KUBE_NAMESPACE = 'default'         // Your Kubernetes namespace
     }
 
     stages {
@@ -22,11 +22,15 @@ pipeline {
         stage('Set Build Name') {
             steps {
                 script {
+                    // Validate Maven and prepare environment before extracting version
+                    sh 'mvn validate'
+
                     def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'master'
                     def version = sh(
-                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -v '\\['",
+                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                         returnStdout: true
                     ).trim()
+
                     version = version.replaceAll('[^\\x20-\\x7E]', '')
                     if (!version) {
                         version = 'unknown-version'
@@ -62,17 +66,15 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
-		        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-		            script {
-		                sh """
-		                    docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION} .
-		                    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-		                    docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
-		                """
-		                env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
-		            }
-		        }
-		    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh """
+                        docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION} .
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}
+                    """
+                    env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
+                }
+            }
         }
 
         stage('Deploy to Kubernetes') {
