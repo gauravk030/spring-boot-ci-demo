@@ -2,26 +2,26 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.8.7'  // Ensure this matches your Maven installation
+        maven 'Maven 3.8.7'
     }
     environment {
-        SONARQUBE_SCANNER_HOME = tool 'SonarScanner'   // SonarScanner installation name
+        SONARQUBE_SCANNER_HOME = tool 'SonarScanner'
     }
     stages {
         stage('Checkout') {
             steps {
-                setGitHubPullRequestStatus context: 'CI/CD', status: 'PENDING', description: 'Checking out project'
+                setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
                 git branch: 'master', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'
-                setGitHubPullRequestStatus context: 'CI/CD', status: 'SUCCESS', description: 'Checkout completed'
+                setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
             }
         }
 
         stage('Build') {
             steps {
                 script {
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'PENDING', description: 'Building project'
+                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
                     sh 'mvn clean install'
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'SUCCESS', description: 'Build completed'
+                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
                 }
             }
         }
@@ -29,9 +29,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'PENDING', description: 'Running SonarQube analysis'
+                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
                     sh "${env.SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=spring-boot-ci-demo -Dsonar.sources=src -Dsonar.java.binaries=target"
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'SUCCESS', description: 'SonarQube analysis completed'
+                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
                 }
             }
         }
@@ -39,9 +39,9 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'PENDING', description: 'Waiting for Quality Gate result'
+                    setGitHubPullRequestStatus state: 'PENDING', context: 'CI/CD'
                     waitForQualityGate abortPipeline: true
-                    setGitHubPullRequestStatus context: 'CI/CD', status: 'SUCCESS', description: 'Quality Gate passed'
+                    setGitHubPullRequestStatus state: 'SUCCESS', context: 'CI/CD'
                 }
             }
         }
