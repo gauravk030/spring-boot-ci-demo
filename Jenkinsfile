@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'Maven 3.6.3'  // Update with the correct Maven version name
-        sonarQubeScanner 'SonarQubeScanner'  // Make sure this matches the name of your SonarQube scanner setup
+        sonarQubeScanner 'SonarQube'  // Make sure this matches the name of your SonarQube scanner setup
     }
 
     stages {
