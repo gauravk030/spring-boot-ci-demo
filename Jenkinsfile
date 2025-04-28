@@ -2,43 +2,44 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('sonar-key')  // Replace with your Jenkins credentials ID
+        SONAR_TOKEN = credentials('sonar-key') // Jenkins credential ID
+    }
+
+    tools {
+        maven 'Maven 3.8.7' // Or whatever Maven you installed
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from your Git repository
                 checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                // Build your project
-                script {
-                    sh 'mvn clean install'
-                }
+                sh 'mvn clean install'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                // Set the environment for SonarQube analysis and run SonarScanner
-                sh '''
-			        /var/jenkins_home/tools/hudson.plugins.sonar.SonarRunnerInstallation/SonarScanner/bin/sonar-scanner
-			    '''
+                withSonarQubeEnv('SonarQubeLocal') {
+                    sh '''
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=spring-boot-ci-demo \
+                          -Dsonar.projectName="spring-boot-ci-demo" \
+                          -Dsonar.host.url=http://localhost:9000 \
+                          -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                // Wait for SonarQube analysis to complete and check the quality gate status
-                script {
-                    def qualityGate = waitForQualityGate()
-                    if (qualityGate.status != 'OK') {
-                        error "Quality gate failed: ${qualityGate.status}"
-                    }
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
