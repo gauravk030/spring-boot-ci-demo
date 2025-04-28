@@ -6,7 +6,9 @@ pipeline {
         // Use SonarRunnerInstallation instead of sonarScanner
        
     }
-
+    environment {
+        SONARQUBE_SCANNER_HOME = tool 'SonarScanner'   // SonarScanner installation name
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -19,6 +21,14 @@ pipeline {
                 script {
                     // Build the project using Maven
                     sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh "${env.SONARQUBE_SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=spring-boot-ci-demo -Dsonar.sources=src -Dsonar.java.binaries=target"
                 }
             }
         }
