@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('new token')  // Replace with your Jenkins credentials ID
+        SONAR_TOKEN = credentials('test-token')  // Replace with your Jenkins credentials ID
     }
 
     stages {
