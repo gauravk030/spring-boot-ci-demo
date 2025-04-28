@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-ci-demo
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring-boot-ci-demo
+  template:
+    metadata:
+      labels:
+        app: spring-boot-ci-demo
+    spec:
+      containers:
+        - name: spring-boot-ci-demo
+          image: your-dockerhub-username/spring-boot-ci-demo:latest
+          ports:
+            - containerPort: 8080
