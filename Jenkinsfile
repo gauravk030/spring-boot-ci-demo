@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.6.3'  // Update with the correct Maven version name
-        sonar 'SonarQube Scanner'  // Make sure this matches the name of your SonarQube scanner setup
+        maven 'Maven 3.6.3'  // Ensure this matches your Maven installation
+        // Use SonarRunnerInstallation instead of sonarScanner
+        sonar 'SonarQube Scanner'  // Make sure this matches the name of your SonarQube scanner setup in Global Tool Configuration
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // GitHub repository URL
+                git 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // Replace with your repository
             }
         }
 
@@ -34,10 +35,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build, analysis, and deployment were successful!'
+            echo 'Build and analysis were successful!'
         }
         failure {
-            echo 'There was an issue with the build or deployment.'
+            echo 'Build or analysis failed!'
         }
     }
 }
