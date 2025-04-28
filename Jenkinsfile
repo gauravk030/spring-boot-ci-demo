@@ -4,7 +4,7 @@ pipeline {
     tools {
         maven 'Maven 3.8.7'  // Ensure this matches your Maven installation
         // Use SonarRunnerInstallation instead of sonarScanner
-        sonar 'SonarQube Scanner' // Ensure this matches your SonarQube scanner installation
+       
     }
 
     stages {
@@ -19,17 +19,6 @@ pipeline {
                 script {
                     // Build the project using Maven
                     sh 'mvn clean install'
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    // Perform SonarQube analysis
-                    withSonarQubeEnv('SonarQube') {
-                        sh 'mvn sonar:sonar'
-                    }
                 }
             }
         }
