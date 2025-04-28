@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // Replace with your repository
+                git branch: 'main', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'  // Use main if that's the default branch
             }
         }
 
