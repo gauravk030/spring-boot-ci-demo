@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven 3.6.3'  // Ensure this matches your Maven installation
+        maven 'Maven 3.8.7'  // Ensure this matches your Maven installation
         // Use SonarRunnerInstallation instead of sonarScanner
     }
 
