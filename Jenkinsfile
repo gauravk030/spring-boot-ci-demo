@@ -29,7 +29,7 @@ pipeline {
                         mvn sonar:sonar \
                           -Dsonar.projectKey=spring-boot-ci-demo \
                           -Dsonar.projectName="spring-boot-ci-demo" \
-                          -Dsonar.host.url=http://localhost:9000 \
+                          -Dsonar.host.url=http://host.docker.internal:9000 \
                           -Dsonar.login=$SONAR_TOKEN
                     '''
                 }
