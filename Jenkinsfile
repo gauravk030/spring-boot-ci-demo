@@ -20,23 +20,22 @@ pipeline {
 
         stage('Set Build Name') {
             steps {
-                script {
-                    sh 'mvn validate'
-
-                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'master'
-                    def version = sh(
-                        script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
-                        returnStdout: true
-                    ).trim()
-
-                    version = version.replaceAll('[^\\x20-\\x7E]', '')
-                    if (!version) {
-                        version = 'unknown-version'
-                    }
-                    currentBuild.displayName = "${branchName} - ${version} #${BUILD_NUMBER}"
-                    env.APP_VERSION = version
-                    echo "✅ Build Name: ${currentBuild.displayName}"
-                }
+               script {
+		            sh 'mvn validate'
+		
+		            def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '') ?: 'master'
+		            def rawVersion = sh(
+		                script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '\\n' | tr -dc '[:alnum:]._-'",
+		                returnStdout: true
+		            ).trim()
+		
+		            if (!rawVersion) {
+		                rawVersion = 'unknown-version'
+		            }
+		            currentBuild.displayName = "${branchName} - ${rawVersion} #${BUILD_NUMBER}"
+		            env.APP_VERSION = rawVersion
+		            echo "✅ Build Name: ${currentBuild.displayName}"
+		        }
             }
         }
 
