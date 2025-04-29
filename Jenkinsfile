@@ -12,7 +12,11 @@ pipeline {
     }
 
     stages {
-        
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
         stage('Set Build Name') {
             steps {
