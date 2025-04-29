@@ -38,7 +38,6 @@ pipeline {
 		        }
             }
         }
-        
 
         stage('Build and Unit Test') {
             steps {
