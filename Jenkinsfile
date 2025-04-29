@@ -15,7 +15,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'
+                checkout scm
             }
         }
 
@@ -41,9 +41,17 @@ pipeline {
             }
         }
 
-        stage('Build Maven Project') {
+        stage('SonarQube Analysis') {
             steps {
-                sh 'mvn clean install -DskipTests'
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh "${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner"
+                }
+            }
+        }
+
+        stage('Build and Unit Test') {
+            steps {
+                sh 'mvn clean verify'
             }
         }
 
@@ -52,12 +60,15 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
                         def fullImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
-                        echo "📦 Building Docker Image: ${fullImageName}"
+                        def latestImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
+                        
+                        echo "📦 Building Docker Images: ${fullImageName} and ${latestImageName}"
 
                         sh """
-                            docker build -t "${fullImageName}" .
+                            docker build -t "${fullImageName}" -t "${latestImageName}" .
                             echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
                             docker push "${fullImageName}"
+                            docker push "${latestImageName}"
                             docker logout
                         """
 
@@ -70,7 +81,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    echo "🚀 Deploying to Kubernetes namespace '${KUBE_NAMESPACE}'..."
+                    echo "🚀 Deploying '${FULL_IMAGE_NAME}' to Kubernetes namespace '${KUBE_NAMESPACE}'..."
                     sh """
                         kubectl set image deployment/${IMAGE_NAME} ${IMAGE_NAME}=${FULL_IMAGE_NAME} --namespace=${KUBE_NAMESPACE}
                         kubectl rollout status deployment/${IMAGE_NAME} --namespace=${KUBE_NAMESPACE}
@@ -85,7 +96,10 @@ pipeline {
             echo '✅ Pipeline completed successfully!'
         }
         failure {
-            echo '❌ Pipeline failed! Check above logs!'
+            echo '❌ Pipeline failed! Please check the console logs for errors!'
+        }
+        always {
+            cleanWs()
         }
     }
 }
