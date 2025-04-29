@@ -12,11 +12,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'master', url: 'https://github.com/gauravk030/spring-boot-ci-demo.git'
-            }
-        }
+        
 
         stage('Set Build Name') {
             steps {
