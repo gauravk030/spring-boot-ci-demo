@@ -6,7 +6,6 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_SCANNER_HOME = tool 'SonarScanner'
         DOCKER_REGISTRY = 'gauravkhrnr'        // Your DockerHub username
         IMAGE_NAME = 'spring-boot-ci-demo'
         KUBE_NAMESPACE = 'default'             // Kubernetes namespace
@@ -37,14 +36,6 @@ pipeline {
                     currentBuild.displayName = "${branchName} - ${version} #${BUILD_NUMBER}"
                     env.APP_VERSION = version
                     echo "✅ Build Name: ${currentBuild.displayName}"
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQubeServer') {
-                    sh "${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner"
                 }
             }
         }
