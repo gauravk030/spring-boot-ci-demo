@@ -54,19 +54,17 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
-                        // Full image name with version
                         env.FULL_IMAGE_NAME = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
-                        // Latest image tag
                         def latestImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
 
                         echo "📦 Building Docker Images..."
 
-                        // Corrected Docker build and push commands
+                        // Safely pass secrets as environment variables without Groovy interpolation
                         sh """
-                            docker build -t ${FULL_IMAGE_NAME} -t ${latestImageName} .
-                            echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-                            docker push ${FULL_IMAGE_NAME}
-                            docker push ${latestImageName}
+                            docker build -t \$FULL_IMAGE_NAME -t \$DOCKER_USERNAME/$IMAGE_NAME:latest .
+                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                            docker push \$FULL_IMAGE_NAME
+                            docker push \$DOCKER_USERNAME/$IMAGE_NAME:latest
                             docker logout
                         """
                     }
@@ -79,8 +77,8 @@ pipeline {
                 script {
                     echo "🚀 Deploying '${env.FULL_IMAGE_NAME}' to Kubernetes namespace '${KUBE_NAMESPACE}'..."
                     sh """
-                        kubectl set image deployment/${IMAGE_NAME} ${IMAGE_NAME}=${FULL_IMAGE_NAME} --namespace=${KUBE_NAMESPACE}
-                        kubectl rollout status deployment/${IMAGE_NAME} --namespace=${KUBE_NAMESPACE}
+                        kubectl set image deployment/$IMAGE_NAME $IMAGE_NAME=\$FULL_IMAGE_NAME --namespace=\$KUBE_NAMESPACE
+                        kubectl rollout status deployment/$IMAGE_NAME --namespace=\$KUBE_NAMESPACE
                     """
                 }
             }
