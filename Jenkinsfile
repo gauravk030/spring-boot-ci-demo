@@ -48,25 +48,29 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
-                        def fullImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
-                        def latestImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
-                        
-                        echo "📦 Building Docker Images: ${fullImageName} and ${latestImageName}"
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+            script {
+                // Sanitize version
+                env.APP_VERSION = env.APP_VERSION.replaceAll('[^a-zA-Z0-9._-]', '')
 
-                        sh """
-                            docker build -t "${fullImageName}" -t "${latestImageName}" .
-                            echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-                            docker push "${fullImageName}"
-                            docker push "${latestImageName}"
-                            docker logout
-                        """
+                def fullImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:${APP_VERSION}"
+                def latestImageName = "${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
+                
+                echo "📦 Building Docker Images: [REDACTED]/${IMAGE_NAME}:${APP_VERSION} and [REDACTED]/${IMAGE_NAME}:latest"
 
-                        env.FULL_IMAGE_NAME = fullImageName
-                    }
-                }
+                sh """
+                    docker build -t '${fullImageName}' -t '${latestImageName}' .
+                    echo '${DOCKER_PASSWORD}' | docker login -u '${DOCKER_USERNAME}' --password-stdin
+                    docker push '${fullImageName}'
+                    docker push '${latestImageName}'
+                    docker logout
+                """
+
+                env.FULL_IMAGE_NAME = fullImageName
             }
+        }
+    }
+
         }
 
         stage('Deploy to Kubernetes') {
